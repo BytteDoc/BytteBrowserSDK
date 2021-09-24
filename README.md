@@ -13,7 +13,7 @@
  - [Face Capture](#CaptureFace)
  - [Voice Capture](#VoiceCapture)
  - [Capture Result object](#CaptureDocumentoResult)
- - Finger Capture - Coming soon...
+ - [Finger Capture](#CaptureFinger)
 
 **Bytte Browser SDK**  is a commercial product, to download and use it contact info@bytte.com.co for instructions on how to obtain the required resources and access
  
@@ -38,7 +38,7 @@ in your project already created, Install the dependencies and devDependencies an
 
 ```sh
 cd my-project
-npm install @bytte/byttebrowsersdk@1.0.8
+npm install @bytte/byttebrowsersdk@2.0.5
 npm install
 ```
 Start the server
@@ -1018,4 +1018,239 @@ this.oSDKCapturaVoice.startCapture().then( ( val : CaptureAudioResult ) =>
     //Optional -- add Audio player to div html
     this.divPlayer.appendChild(this.player);        
 });
+```
+----------------------------------------------
+----------------------------------------------
+## <a name="CaptureFinger"></a>CaptureFinger
+Capture Fingers
+
+Example Layout HTML
+```html
+<p>Capture Fingers Demo</p>
+<div id="divCaptura">
+    <button id="btnStartCapture" (click)="initSDK()" value="InitSDK"
+    class="btn btn-primary">1.Init SDK</button>
+
+    <div [style]="sdisplay">
+        <button id="btnStartCapture" (click)="startCapture()" value="Start Capture..."
+            class="btn btn-primary">2. Capturre Fingers</button>
+    </div>
+
+    <div>
+        <button id="btnDecodeBlob" (click)="decodeBlob()" value="decode Blob"
+            class="btn btn-primary">3. Decode blob</button>
+    </div>
+</div>
+
+```
+## CSS/Style
+Capture fingers require this CSS Style items:
+In Angular project add/import in styles.css
+
+download from https://github.com/BytteDoc/BytteBrowserSDK/blob/main/style.css
+
+## Assets
+in your assets folder add this files
+* 3cc8e488a00c7d64abb1d9d6ab43afe6.wasm
+* 004a6983c2492a4a7553fd30e59406d2.wasm
+* 91e19dba55a8cacf85d7d006f3d9e2d2.wasm
+* 0625e28fcbdfc918b5f42ac1679c8255.wasm
+* Images Folder
+
+to get this files, download from https://github.com/BytteDoc/BytteBrowserSDK/blob/main/assets.zip
+
+
+## Javascript/TypeScript Code  
+
+```TypeScript
+import { Component, OnInit } from '@angular/core';
+import { CaptureEvents, CaptureFinger, FingerDetectionEnum } from '@bytte/byttebrowsersdk';
+...  
+//1. Declare CaptureFinger object
+private oCapturaFin : CaptureFinger; //SDK Object  
+private oEvents : CaptureEvents; //SDK Events
+private bBlob : Blob; //Blob Response  
+
+```
+Set FingerDetection type, the options are:
+* L4F = Left 4 Fingers
+* R4F = Right 4 Fingers 
+* RIGHT_INDEX
+* RIGHT_MIDDLE
+* RIGHT_RING
+* RIGHT_LITTLE
+* LEFT_INDEX
+* LEFT_MIDDLE
+* LEFT_RING
+* LEFT_LITTLE
+* RIGHT_THUMB
+* LEFT_THUMB
+
+```TypeScript
+//2. declare Constructor objects
+const captureType = FingerDetectionEnum.R4F;
+const wasmURL = '...'; //URL WASM Provided by Bytte
+const timeOutNumber = 30000; //Time Out
+const language = "es"; //Language es-en
+const debug = false; //Debug - default false
+
+//3. Generate a new object
+this.oCapturaFin = new CaptureFinger(captureType, wasmURL, timeOutNumber, debug, language);
+  
+//4. add Callback Stream Ready
+// When the SDK prepares the cameras (this process can take a long time),
+// the user could see, for example, a waiting image.....
+// When done, this callback will be called
+this.oCapturaFin.addCallBackStreamReady((streamReady: boolean, displayInfo?: string)  =>
+{
+    console.log("Stream Ready", streamReady);
+    //Ready to Start!!
+});  
+
+```
+>5. Initialize SDK Finger Capture
+This procedure load sdk elements in memory
+
+```TypeScript
+initSDK() 
+{
+    //Init Capture SDK     
+    this.oCapturaFin.InitFingerCapture().then(() =>
+        console.log("Init SDK") //SDK init successfully
+).catch(err => 
+    { 
+        console.log("Error SDK", err) 
+    });
+}
+```
+> Call Capture function! 
+> This procedure activate the back device Camera
+> and Cavas object
+
+> Start Capture!!
+startCapture function return a promise.
+startCapture initialize mobile phone camera and shows a square with instructions.
+When promise return successfully, object return is a Blob JavaScript Object
+
+```TypeScript
+//6. Start Capture!!
+...
+startCapture(): void 
+{    
+    this.oCapturaFin.startCapture().then((val: Blob) => 
+    {
+        //operation return a Blob object
+        this.bBlob = val;
+        console.log("Blob OK");
+    }).catch(err => {
+        console.log(err);
+    });
+}
+
+```
+>9. Decode Blob
+decodeBlob function convert the blob object in a Javascript Object with finger images
+
+```TypeScript
+
+//Decode blob
+decodeBlob()
+{
+    if (this.bBlob) 
+    {
+      this.oCapturaFin.decodeBlob(this.bBlob) //this function decode blob object
+        .then((fResult) => 
+        {
+          console.log("decodeBlob OK");
+          console.log(fResult);
+        })
+        .catch((err) => {
+          console.log("decodeBlob ERROR ", err);
+        });
+    }
+  }
+```
+> DecodeBlob function return a FingerResult class object
+this object contains images and information from the current captrure:
+
+```TypeScript
+import { FingerScore } from "./FingerScore";
+export declare class FingerResult {
+    score: number;
+    fingerScore: FingerScore[];
+    successOperation: boolean;
+    message: string;
+    constructor();
+}
+
+export declare class FingerScore {
+    fingerId: number;
+    score: number;
+    image: string;
+    wsq: string;
+    fingerName: string;
+    handName: string;
+    width: number;
+    height: number;
+    constructor();
+}
+```
+
+> DecodeBlob function return a FingerResult class object
+this object contains images and information from the current captrure:
+this is a example in JSON:
+```TypeScript
+{
+    "score": 0,
+    "fingerScore": [{
+            "fingerId": 3,
+            "score": 1,
+            "image": "iVBORw0KGgo...", //Image ib base64 string encoding           
+            "fingerName": "MIDDLE",
+            "handName": "RIGHT",
+            "width": 269,
+            "height": 444
+        }, {
+            "fingerId": 4,
+            "score": 1,
+            "image": "iVBORw0KGgoAAA...", //Image ib base64 string encoding                      
+            "fingerName": "RING",
+            "handName": "RIGHT",
+            "width": 252,
+            "height": 423
+        }, {
+            "fingerId": 2,
+            "score": 1,
+            "image": "iVBORw0KGg....",   //Image ib base64 string encoding                     
+            "fingerName": "INDEX",
+            "handName": "RIGHT",
+            "width": 269,
+            "height": 402
+        }, {
+            "fingerId": 5,
+            "score": 1,
+            "image": "iVBORw0...",  //Image ib base64 string encoding           
+            "fingerName": "LITTLE",
+            "handName": "RIGHT",
+            "width": 247,
+            "height": 396
+        }
+    ],
+    "successOperation": true,
+    "message": "FEEDBACK_CAPTURED"
+}
+```
+> Return types:
+> When successOperation = true, capture was finished correctly
+
+> When successOperation = false, capture was with error, the "message" variable contains this detail
+
+> fingerId: is the finger number (1 .. 10)
+
+> image: string base64 image in PNG format
+
+> fingerName: finger captured name: INDEX, MIDDLE, RING, LITTLE, THUMB
+
+> handName: hand captured: RIGHT or LEFT
+
 
