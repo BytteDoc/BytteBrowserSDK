@@ -10,10 +10,10 @@
  - [Colombia Document Back Capture](#CaptureCOFrontDocument).
  - [Colombia Digital Document Front Capture](#CaptureCODigitalFrontDocument).
  - [Colombia Digital Document Back Capture](#CaptureCODigitalBackDocument)
- - [Face Capture](#CaptureFace)
  - [Voice Capture](#VoiceCapture)
  - [Capture Result object](#CaptureDocumentoResult)
  - [Finger Capture](#CaptureFinger)
+ - [Face Capture](#CaptureFace)
 
 **Bytte Browser SDK**  is a commercial product, to download and use it contact info@bytte.com.co for instructions on how to obtain the required resources and access
  
@@ -703,237 +703,6 @@ cleanMem() {
 }
 
 ```
-## ----------------------
-## <a name="CaptureFace"></a>CaptureFace
-Capture Face Component
-
-Example Layout HTML
-```html
-<p>capture face</p>
-
-<div id="screen-start" class="hidden">    
-    <button id="btnStartCapture" (click)="startCapture()" value="Start Capture..." class="btn btn-primary">Capture</button>
-</div>
- 
-    <!-- Control -->
-    <div class="dvContainerbase hidden" id="dvContainerbase">
-        <div id="document_picker" class="document_pickerbase">
-            <div id="pageContainerdiv">
-                <div class="cameraContainer">
-                    <video id="user-video" autoplay playsinline class="user-video"></video>
-                    <canvas id="overlay" class="overlay"></canvas>
-                    <img id="mask" class="overlay" />                    
-                </div>
-            </div>
-        </div>
-    </div> 
-    <!-- End Control -->
-
-    <div>
-        <!-- Callback info -->
-        {{processInfo}}
-    </div>
-
-<div style="display:block;"> 
-    <div id="dvResult">
-        <img id="imgResult" [src]="imSrc" />        
-    </div>    
-</div>
-<label id="lblTest">--</label><br />
-
-<!-- !!!!Important!!!!! -->
-<!-- Div with canvas hidden required -->
-<div hidden>
-    <canvas></canvas>
-    <canvas id="overlayResult"></canvas>
-    <canvas id="canvasmirror"></canvas>
-    <div id="seccion_resultado" hidden>
-        <input id="code-result" />
-    </div>
-</div>
-```
-
-## Javascript/TypeScript Code  
-
-```TypeScript
-import * as BytteSDK from "@bytte/byttebrowsersdk";
-import { BaseReturn, CaptureDocumentoResult } from '@bytte/byttebrowsersdk';
-...
-...  
-//1. Declare CaptureFace object
-private oSDKCapturaRostro: BytteSDK.CaptureFace;
-
-//2. Get HTML reference objects
-private cameraFeed: HTMLVideoElement;
-private cameraFeedback: HTMLCanvasElement;
-private canvasMirror: HTMLCanvasElement;
-private dvContainerbase: HTMLDivElement;
-private sWeightsPath: string;
-private oFaceMask: HTMLImageElement;
-...
-...
-this.cameraFeed = document.getElementById("user-video") as HTMLVideoElement;
-this.cameraFeedback = document.getElementById("overlay") as HTMLCanvasElement;
-this.canvasMirror = document.getElementById("canvasmirror") as HTMLCanvasElement;
-this.dvContainerbase = document.getElementById("dvContainerbase") as HTMLDivElement;
-this.oImgResult = document.getElementById("imgResult") as HTMLImageElement;
-this.oFaceMask = document.getElementById("mask") as HTMLImageElement;
- 
-//3. Instance SDK
-this.oSDKCapturaRostro =  new  BytteSDK.CaptureFace(this.cameraFeed,
-this.cameraFeedback,
-this.canvasMirror,
-this.dvContainerbase,
-this.oFaceMask,
-this.sWeightsPath,
-this.faceMaskPath,
-true,  //Return base64 Image for test only!!
-false, //Procecss FaceLandmarks - always false
-this.sCamInfo);
-
-```
-> Return image Base64 string **IS NOT RECOMENDED**, use only for test
-> SDK return a blob object, this contains the image
-
-```TypeScript
-//4. Set Time Out (example 30 segs)
-this.oSDKCapturaRostro.setTimeOut(30  *  1000);  
-
-//5. Initialize SDK Face Capture
-//Return Promise void
-this.oSDKCapturaRostro.InitFaceCapture().then((x) => {
-         console.log("Init Face Capture OK!!");
-});
-  
-//6. add Callback Stream Ready
-// When the SDK prepares the cameras (this process can take a long time),
-// the user could see, for example, a waiting image.....
-// When done, this callback will be called
-this.oSDKCapturaFrenteDoc.addCallBackStreamReady((streamReady: boolean, displayInfo?: string)  =>
-{
-    console.log("Stream Ready", streamReady);
-    //Ready to Start!!
-
-    /* if display Info return, save this string */
-    if (displayInfo) {
-        this.sCamInfo = displayInfo;
-    }
-});  
-
-//6. add Callback Process info
-this.oSDKCapturaRostro.addCallFaceDetectionErrors((pipelineResults: PipelineResults) => {
-         this.processInfo = "";
-         if (pipelineResults.FACE_ANGLE_TOO_LARGE) {
-            this.processInfo += " FACE ANGLE TOO LARGE";
-         }
-         if (pipelineResults.FACE_CLOSE_TO_BORDER) {
-            this.processInfo += " FACE CLOSE TO BORDER";
-         }
-         if (pipelineResults.FACE_NOT_FOUND) {
-            this.processInfo += " FACE NOT FOUND";
-         }
-         if (pipelineResults.FACE_TOO_SMALL) {
-            this.processInfo += " FACE TOO SMALL";
-         }
-         if (pipelineResults.PROBABILITY_TOO_SMALL) {
-            this.processInfo += " PROBABILITY TOO SMALL";
-         }
-         if (pipelineResults.TOO_MANY_FACES) {
-            this.processInfo += " TOO MANY FACES";
-         }
-      });
-
-```
-> Call Capture function! 
-> This procedure activate the back device Camera
-> and Cavas object
-
-```TypeScript
-//7. Start Capture!!
-...
-this.oSDKCapturaRostro.startCapture().then(oCapturaDocumentoResult => 
-{ 
-    //Function handle OK...
-    this.ProcessCaptureOK(oCapturaDocumentoResult); 
-})
-.catch(oCapturaDocumentoResult => 
-{ 
-    //Function Handle Error...
-    this.ProcesaCaptureError(oCapturaDocumentoResult); 
-})
-
-//Handle success
-async ProcessCaptureOK(oDocumentoResult: CaptureDocumentoResult) 
-{
-    /*
-    --> In documentImageBase64 return Face Image Base64String 
-    */
-
-    //if in the constructor, flag return imageBase64 is true, 
-    //**return imageBase64 IS NOT RECOMENDED**
-    documentImageBase64 field contains a image
-    this.oImgResult.src = "data:image/png;base64," + oDocumentoResult.documentImageBase64;  
-    
-    this.processInfo = "Capture end success";
-    //Send instruction to SDK to End Capture
-    //End stream and free memory resources
-    this.oSDKCapturaRostro.endCapture().then(() => {
-        console.log("Fin Captura");
-        })
-}
-
-//Handle Error
-async ProcesaCaptureError(oDocumentoResult: CaptureDocumentoResult) {
-    //Show error in div..  
-    this.documentResult = oDocumentoResult;
-    this.mensaje = oDocumentoResult.messaje;
-    console.log("Error Capture");
-    console.log(oDocumentoResult);
-    this.processInfo = "Capture Error";
-} 
-
-/* if you need a clean image of base64 memory
-   when the mobile device is low on memory 
-*/
-cleanMem() {
-    this.oImgResult.src = "";
-}
-
-```
-
-## --------------------------------------------------
-## <a name="CaptureDocumentoResult"></a>CaptureDocumentoResult Object Return
-When process finish correctly, a **CaptureDocumentoResult** return:
-
-```TypeScript
-//Blob With a image
-documentImageBlob: Blob | null;
-
-//Image in Base64 String Format
-//if in constructor, ReturnDocumentBase64Image = true
-documentImageBase64: string;
-
-//Return Base64String BarCode PDF417 information
-barCodeBase64: string;
-
-//First Name
-firstName: string;
-
-//Last Name
-lastName: string;
-
-//Full Name
-fullName: string;
-
-//Document Number
-documentNumber: string;
-
-//Status - if true, capture success
-status: boolean;
-
-//If error, show exception details
-messaje: string;
-```
 
 ## ----------------------
 ## <a name="VoiceCapture"></a>VoiceCapture
@@ -952,7 +721,6 @@ Example Layout HTML
 <br />
 <div id="divReproductor">Html5 - Capture Audio player!!</div>
 ```
-
 ## Javascript/TypeScript Code  
 
 ```TypeScript
@@ -1040,6 +808,20 @@ Example Layout HTML
         <button id="btnDecodeBlob" (click)="decodeBlob()" value="decode Blob"
             class="btn btn-primary">3. Decode blob</button>
     </div>
+
+    <div id="txtmsg">{{msgs}}</div>
+    <div *ngIf="lstItems">
+     <table style="width:100%;">
+        <tr *ngFor="let item of lstItems">
+            <td>                
+                Finger {{item.fingerId}}   
+            </td>
+            <td>
+                <img [src]='item.handName'>
+           </td>
+        </tr>
+      </table>
+    </div>
 </div>
 
 ```
@@ -1047,7 +829,14 @@ Example Layout HTML
 Capture fingers require this CSS Style items:
 In Angular project add/import in styles.css
 
-download from https://github.com/BytteDoc/BytteBrowserSDK/blob/main/style.css
+download from https://github.com/BytteDoc/BytteBrowserSDK/blob/main/finger-style.css
+
+in your main CSS file, Link this file
+
+```TypeScript
+@import "finger-style.css";
+...
+```
 
 ## Assets
 in your assets folder add this files
@@ -1070,6 +859,7 @@ import { CaptureEvents, CaptureFinger, FingerDetectionEnum } from '@bytte/bytteb
 private oCapturaFin : CaptureFinger; //SDK Object  
 private oEvents : CaptureEvents; //SDK Events
 private bBlob : Blob; //Blob Response  
+public  lstItems : FingerScore[]; //Array Fingers
 
 ```
 Set FingerDetection type, the options are:
@@ -1105,6 +895,8 @@ this.oCapturaFin.addCallBackStreamReady((streamReady: boolean, displayInfo?: str
 {
     console.log("Stream Ready", streamReady);
     //Ready to Start!!
+
+     this.msgs = "2. SDK Ready, Capture Fingers";      
 });  
 
 ```
@@ -1136,16 +928,17 @@ When promise return successfully, object return is a Blob JavaScript Object
 //6. Start Capture!!
 ...
 startCapture(): void 
-{    
+  {    
     this.oCapturaFin.startCapture().then((val: Blob) => 
     {
-        //operation return a Blob object
-        this.bBlob = val;
-        console.log("Blob OK");
+      this.bBlob = val;
+      console.log("Blob OK");
+      this.msgs = "3. Captura Lista";
     }).catch(err => {
-        console.log(err);
+      console.log(err);
+      this.msgs = " ** Error " + err;
     });
-}
+  }
 
 ```
 >9. Decode Blob
@@ -1158,14 +951,23 @@ decodeBlob()
 {
     if (this.bBlob) 
     {
-      this.oCapturaFin.decodeBlob(this.bBlob) //this function decode blob object
-        .then((fResult) => 
+            this.oCapturaFin.decodeBlob(this.bBlob)
+        .then((fResult : FingerResult) => 
         {
           console.log("decodeBlob OK");
           console.log(fResult);
+          this.msgs = "decode OK ";
+
+          fResult.fingerScore.forEach(element => {
+              element.handName = "data:image/png;base64," + element.image; 
+          });
+
+          //Asigno las imagenes
+          this.lstItems = fResult.fingerScore;
         })
         .catch((err) => {
           console.log("decodeBlob ERROR ", err);
+          this.msgs = "decode Error " + err;
         });
     }
   }
@@ -1174,6 +976,7 @@ decodeBlob()
 this object contains images and information from the current captrure:
 
 ```TypeScript
+
 import { FingerScore } from "./FingerScore";
 export declare class FingerResult {
     score: number;
@@ -1241,16 +1044,241 @@ this is a example in JSON:
 }
 ```
 > Return types:
-> When successOperation = true, capture was finished correctly
 
-> When successOperation = false, capture was with error, the "message" variable contains this detail
+* When successOperation = true, capture was finished correctly
+* When successOperation = false, capture was with error, the "message" variable contains this detail
+* fingerId: is the finger number (1 .. 10)
+* image: string base64 image in PNG format
+* fingerName: finger captured name: INDEX, MIDDLE, RING, LITTLE, THUMB
+* handName: hand captured: RIGHT or LEFT
 
-> fingerId: is the finger number (1 .. 10)
+----------------------------------------------
+----------------------------------------------
+## <a name="CaptureFace"></a>CaptureFace
+* Capture Face
 
-> image: string base64 image in PNG format
+Example Layout HTML
+```html
+<p>Capture Face Demo</p>
+<div id="divCaptura">
+    <button id="btnStartCapture" (click)="initSDK()" value="InitSDK"
+    class="btn btn-primary">1.Init SDK</button>
 
-> fingerName: finger captured name: INDEX, MIDDLE, RING, LITTLE, THUMB
+    <div [style]="sdisplay">
+        <button id="btnStartCapture" (click)="startCapture()" value="Start Capture..."
+            class="btn btn-primary">2. Capture Face</button>
+    </div>
+    <div>
+        <button id="btnDecodeBlob" (click)="decodeBlob()" value="decode Blob"
+            class="btn btn-primary">3. Decode blob</button>
+    </div>
+    <div id="txtmsg">{{msgs}}</div>
+    <div *ngIf="sImage">
+        <table>
+           <tr>
+               <td>                
+                   Face
+               </td>
+               <td>
+                   <img style="width:40%;" [src]='sImage'>
+              </td>
+           </tr>
+         </table>
+       </div>
+</div>
 
-> handName: hand captured: RIGHT or LEFT
+```
+## CSS/Style
+Capture face require this CSS Style items:
+In Angular project add/import in styles.css
+
+download from https://github.com/BytteDoc/BytteBrowserSDK/blob/main/face-style.css
+
+in your main CSS file, Link this file
+
+```TypeScript
+@import "face-style.css";
+...
+```
+
+## Assets
+in your assets folder add this files
+* 2d57157acbcac85f72ed68bceb90ffa3.wasm
+* Images Folder
+
+to get this files, download from https://github.com/BytteDoc/BytteBrowserSDK/blob/main/assets.zip
 
 
+## Javascript/TypeScript Code  
+
+```TypeScript
+import { Component, OnInit } from '@angular/core';
+import * as BytteSDK from "@bytte/byttebrowsersdk";
+import { FaceResult } from '@bytte/byttebrowsersdk/types/DataTypes/FaceResult';
+...  
+//1. Declare Capture Face object
+private oCapturaFace: BytteSDK.CaptureFace; //SDK Object  
+private bBlob : Blob; //Blob Response  
+
+//2. declare Constructor objects
+const wasmURL = '...';          //URL WASM Provided by Bytte
+const timeOutNumber = 30000;    //Time Out
+const language = "es";          //Language es-en
+const debug = false;            //Debug - default false
+
+//3. Generate a new object
+this.oCapturaFace = new BytteSDK.CaptureFace(wasmURL, timeOutNumber, debug, language);    
+  
+//4. add Callback Stream Ready
+// When the SDK prepares the cameras (this process can take a long time),
+// the user could see, for example, a waiting image.....
+// When done, this callback will be called
+this.oCapturaFace.addCallBackStreamReady((streamReady: boolean, displayInfo?: string) => {
+      console.log("streamReady", streamReady);
+      this.msgs = "2. SDK Ready, Capture Face";            
+});
+
+```
+>5. Initialize SDK Face Capture
+This procedure load sdk elements in memory
+
+```TypeScript
+initSDK() 
+{
+    //Init Capture SDK     
+    this.oCapturaFace.InitFaceCapture().then(() => {
+      console.log("Init SDK");
+    }
+    ).catch(err => {
+      console.log("Error SDK", err)
+      this.msgs = "Init Error " + err;
+    });
+  }
+```
+> Call Capture function! 
+
+> This procedure activate the back device Camera and Cavas object
+
+> Start Capture!!
+startCapture function return a promise.
+startCapture initialize mobile phone camera and shows a square with instructions.
+When promise return successfully, object return is a Blob JavaScript Object
+
+```TypeScript
+//6. Start Capture!!
+...
+  startCapture(): void {
+    this.oCapturaFace.startCapture().then((val: Blob) => {
+      this.bBlob = val;
+      console.log("Blob OK");
+      this.msgs = "3. Capture ready..";
+    }).catch(err => {
+      console.log(err);
+      this.msgs = " ** Error " + err;
+    });
+  }
+
+```
+>9. Decode Blob
+decodeBlob function convert the blob object in a Javascript Object with the face image
+
+```TypeScript
+
+//Decode blob
+ decodeBlob() {
+    if (this.bBlob) 
+    {
+      this.msgs = "Process a Blob..."; 
+      this.oCapturaFace.decodeBlob(this.bBlob)
+        .then((fResult: FaceResult) => {
+          if (fResult.successOperation) {
+            console.log("decode Blob OK");
+            console.log(fResult);
+            this.msgs = "decode Ok ";
+            this.sImage = "data:image/png;base64," + fResult.faceScore.image;
+          }
+          else {
+            this.msgs = "Error in process! " + fResult.message;
+          }
+
+        })
+        .catch((err) => {
+          console.log("decodeBlob ERROR ", err);
+          this.msgs = "decode Error " + err;
+        });
+    }
+  }
+```
+> DecodeBlob function return a FaceResult class object
+this object contains images and information from the current captrure:
+
+```TypeScript
+import { FaceScore } from "./FaceScore";
+export declare class FaceResult {
+    score: number;
+    faceScore: FaceScore;
+    successOperation: boolean;
+    message: string;
+    constructor();
+}
+...
+...
+
+import { FaceQuality } from "./FaceQuality";
+export declare class FaceScore {
+    faceId: string;
+    score: number[];
+    image: string;
+    width: number;
+    height: number;
+    bitsPerPixel: number;
+    channels: number;
+    resolution: string;
+    quality: FaceQuality;
+    constructor();
+}
+
+...
+...
+export declare class FaceQuality {
+    eyesStatus: string;
+    eyesOpenMetric: number;
+    headPoseCheck: boolean;
+    qualityMetric: number;
+    constructor();
+}
+```
+
+> DecodeBlob function return a FingerResult class object
+this object contains images and information from the current captrure:
+this is a example in JSON:
+```TypeScript
+{
+    "faceScore": {
+        "faceId": "ccb9e28a-454e-a74c-adff-5e5f842412971634162085145",
+        "score": [1],
+        "image": "iVBORw0...",
+        "width": 540,
+        "height": 720,
+        "bitsPerPixel": 8,
+        "channels": 3,
+        "resolution": "540x720x3",
+        "quality": {
+            "eyesStatus": "OPEN",
+            "eyesOpenMetric": 79.9,
+            "headPoseCheck": true,
+            "qualityMetric": 86.72
+        }
+    },
+    "successOperation": true,
+    "message": "FEEDBACK_CAPTURED"
+}
+
+```
+> Return types:
+
+* When successOperation = true, capture was finished correctly
+* When successOperation = false, capture was with error, the "message" variable contains this detail 
+* image: string base64 image in PNG format
+* score: percentual value (0 - 1)
+* others: image details information
