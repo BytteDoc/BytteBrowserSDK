@@ -884,8 +884,12 @@ const timeOutNumber = 30000; //Time Out
 const language = "es"; //Language es-en
 const debug = false; //Debug - default false
 
+//Colors
+const overlayColor  = "#77bae7"; //Overlay color
+const boxesColor    = "#001eff"; //Boxes color
+
 //3. Generate a new object
-this.oCapturaFin = new CaptureFinger(captureType, wasmURL, timeOutNumber, debug, language);
+this.oCapturaFin = new CaptureFinger(captureType, wasmURL, timeOutNumber, debug, language, overlayColor, boxesColor);
   
 //4. add Callback Stream Ready
 // When the SDK prepares the cameras (this process can take a long time),
@@ -1126,8 +1130,14 @@ const timeOutNumber = 30000;    //Time Out
 const language = "es";          //Language es-en
 const debug = false;            //Debug - default false
 
+//Colors
+const labelColor           = "#000000";
+const canvasBackground     = "#ffffff";
+const labelBackground      = "#000000";
+const ovalBorderBackground = "#4b7c0b";
+
 //3. Generate a new object
-this.oCapturaFace = new BytteSDK.CaptureFace(wasmURL, timeOutNumber, debug, language);    
+this.oCapturaFace = new BytteSDK.CaptureFace(wasmURL, timeOutNumber, debug, language, labelColor, canvasBackground, labelBackground, ovalBorderBackground);    
   
 //4. add Callback Stream Ready
 // When the SDK prepares the cameras (this process can take a long time),
