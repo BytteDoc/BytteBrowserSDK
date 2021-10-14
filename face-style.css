@@ -354,5 +354,7 @@ html{
     background: -webkit-linear-gradient(top, #00b7ea 0%, #009ec3 100%) !important; /* Chrome10-25,Safari5.1-6 */
     background: linear-gradient(to bottom, #00b7ea 0%, #009ec3 100%) !important; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00b7ea', endColorstr='#009ec3', GradientType=0) !important; /* IE6-9 */
-  }
-  
+  }  
+
+  div[role=dialog].identy-face-dialog.ui-dialog  .ui-dialog-titlebar{ display: none; } 
+  div[role=dialog].identy-face-dialog.ui-dialog.identy-progress-dialog { display: none !important; }
